@@ -32,7 +32,7 @@ class fifoQueueTests: XCTestCase
     func testPerformanceExample()
 	{
         // This is an example of a performance test case.
-        self.measureBlock
+        self.measure
 		{
             // Put the code you want to measure the time of here.
         }
@@ -60,9 +60,9 @@ class fifoQueueTests: XCTestCase
 	{
 		let qTest = Queue<String>()
 		qTest.enqueue("1")
-		qTest.enqueue("")
-		qTest.enqueue("")
-		qTest.enqueue("")
+		qTest.enqueue("2")
+		qTest.enqueue("3")
+		qTest.enqueue("4")
 		let thefirstone = qTest.dequeue()
 		
 		XCTAssertNotNil(thefirstone)
@@ -100,6 +100,38 @@ class fifoQueueTests: XCTestCase
 		XCTAssertEqual(qTest.dequeue()!, 3)
 		XCTAssertEqual(qTest.dequeue()!, 4)
 	}
+	
+	func testClass()
+	{
+		class TestObj
+		{
+			var a: String
+			var b: Array<Int>
+			
+			init(a: String, b: Array<Int>)
+			{
+				self.a = a
+				self.b = b
+			}
+			
+			deinit
+			{
+				print("a=\(a)")
+			}
+		}
+		
+		let qTest = Queue<TestObj>()
+		qTest.enqueue(TestObj(a: "one", b: [1,2,3,4]))
+		qTest.enqueue(TestObj(a: "two", b: [2,4,6,8]))
+		qTest.enqueue(TestObj(a: "three", b: [3,9,27,81]))
+		let _ = qTest.dequeue()
+
+		qTest.enqueue(TestObj(a: "four", b: [4,3,2,1]))
+		let _ = qTest.dequeue()
+		
+		qTest.enqueue(TestObj(a: "five", b: [5,5,5,5]))
+	}
+	
 	
 	func  testAddNil()
 	{
@@ -177,10 +209,10 @@ class fifoQueueTests: XCTestCase
 		let qTest = Queue<Int>()
 		let iterations = 200_000
 		
-		let addingExpectation = expectationWithDescription("adding completed")
-		let addingQueue = dispatch_queue_create("adding", DISPATCH_QUEUE_SERIAL)
+		let addingExpectation = expectation(description: "adding completed")
+		let addingQueue = DispatchQueue(label: "adding", attributes: [])
 
-		dispatch_async(addingQueue)
+		addingQueue.async
 		{
 			for i in 1...iterations
 			{
@@ -189,12 +221,12 @@ class fifoQueueTests: XCTestCase
 			addingExpectation.fulfill()
 		}
 
-		waitForExpectationsWithTimeout(600, handler:  nil)
+		waitForExpectations(timeout: 600, handler:  nil)
 
-		let deletingExpectation = expectationWithDescription("deleting completed")
-		let deletingQueue = dispatch_queue_create("deleting", DISPATCH_QUEUE_SERIAL)
+		let deletingExpectation = expectation(description: "deleting completed")
+		let deletingQueue = DispatchQueue(label: "deleting", attributes: [])
 		
-		dispatch_async(deletingQueue)
+		deletingQueue.async
 		{
 			var i = 1
 			repeat
@@ -214,7 +246,7 @@ class fifoQueueTests: XCTestCase
 			deletingExpectation.fulfill()
 		}
 		
-		waitForExpectationsWithTimeout(600, handler:  nil)
+		waitForExpectations(timeout: 600, handler:  nil)
 	}
 
 	func testConcurrency2()
@@ -226,12 +258,12 @@ class fifoQueueTests: XCTestCase
 		let qTest = Queue<Int>()
 		let iterations = 200_000
 		
-		let addingExpectation1 = expectationWithDescription("adding1 completed")
-		let addingExpectation2 = expectationWithDescription("adding2 completed")
+		let addingExpectation1 = expectation(description: "adding1 completed")
+		let addingExpectation2 = expectation(description: "adding2 completed")
 
-		let addingQueue1 = dispatch_queue_create("adding1", DISPATCH_QUEUE_SERIAL)
-		let addingQueue2 = dispatch_queue_create("adding2", DISPATCH_QUEUE_SERIAL)
-		dispatch_async(addingQueue1)
+		let addingQueue1 = DispatchQueue(label: "adding1", attributes: [])
+		let addingQueue2 = DispatchQueue(label: "adding2", attributes: [])
+		addingQueue1.async
 		{
 			for i in 1...iterations
 			{
@@ -240,7 +272,7 @@ class fifoQueueTests: XCTestCase
 			addingExpectation1.fulfill()
 		}
 
-		dispatch_async(addingQueue2)
+		addingQueue2.async
 		{
 			for i in 1...iterations
 			{
@@ -249,16 +281,16 @@ class fifoQueueTests: XCTestCase
 			addingExpectation2.fulfill()
 		}
 		
-		waitForExpectationsWithTimeout(600, handler:  nil)
+		waitForExpectations(timeout: 600, handler:  nil)
 
-		let deletingExpectation1 = expectationWithDescription("deleting1 completed")
-		let deletingQueue1 = dispatch_queue_create("deleting1", DISPATCH_QUEUE_SERIAL)
+		let deletingExpectation1 = expectation(description: "deleting1 completed")
+		let deletingQueue1 = DispatchQueue(label: "deleting1", attributes: [])
 
-		let deletingExpectation2 = expectationWithDescription("deleting2 completed")
-		let deletingQueue2 = dispatch_queue_create("deleting2", DISPATCH_QUEUE_SERIAL)
+		let deletingExpectation2 = expectation(description: "deleting2 completed")
+		let deletingQueue2 = DispatchQueue(label: "deleting2", attributes: [])
 		
 		
-		dispatch_async(deletingQueue1)
+		deletingQueue1.async
 		{
 			var i = 0
 			repeat
@@ -278,7 +310,7 @@ class fifoQueueTests: XCTestCase
 			print("deletingQueue1: \(i)")
 		}
 		
-		dispatch_async(deletingQueue2)
+		deletingQueue2.async
 		{
 			var i = 0
 			repeat
@@ -298,7 +330,7 @@ class fifoQueueTests: XCTestCase
 			print("deletingQueue2: \(i)")
 		}
 
-		waitForExpectationsWithTimeout(600, handler:  nil)
+		waitForExpectations(timeout: 600, handler:  nil)
 	}
 
 	func testConcurrancy3()
@@ -310,12 +342,12 @@ class fifoQueueTests: XCTestCase
 		let qTest = Queue<Int>()
 		let iterations = 100
 		
-		let addingExpectation1 = expectationWithDescription("adding1 completed")
-		let addingExpectation2 = expectationWithDescription("adding2 completed")
+		let addingExpectation1 = expectation(description: "adding1 completed")
+		let addingExpectation2 = expectation(description: "adding2 completed")
 
-		let addingQueue1 = dispatch_queue_create("adding1", DISPATCH_QUEUE_SERIAL)
-		let addingQueue2 = dispatch_queue_create("adding2", DISPATCH_QUEUE_SERIAL)
-		dispatch_async(addingQueue1)
+		let addingQueue1 = DispatchQueue(label: "adding1", attributes: [])
+		let addingQueue2 = DispatchQueue(label: "adding2", attributes: [])
+		addingQueue1.async
 		{
 			for i in 1...iterations
 			{
@@ -325,7 +357,7 @@ class fifoQueueTests: XCTestCase
 			addingExpectation1.fulfill()
 		}
 		
-		dispatch_async(addingQueue2)
+		addingQueue2.async
 		{
 			for i in 1...iterations
 			{
@@ -335,12 +367,12 @@ class fifoQueueTests: XCTestCase
 			addingExpectation2.fulfill()
 		}
 		
-		waitForExpectationsWithTimeout(600, handler:  nil)
+		waitForExpectations(timeout: 600, handler:  nil)
 
-		let deletingExpectation = expectationWithDescription("deleting completed")
-		let deletingQueue = dispatch_queue_create("deleting", DISPATCH_QUEUE_SERIAL)
+		let deletingExpectation = expectation(description: "deleting completed")
+		let deletingQueue = DispatchQueue(label: "deleting", attributes: [])
 		
-		dispatch_async(deletingQueue)
+		deletingQueue.async
 		{
 			var i = 0
 			repeat
@@ -361,7 +393,7 @@ class fifoQueueTests: XCTestCase
 			print("deletingQueue: \(i)")
 		}
 
-		waitForExpectationsWithTimeout(600, handler:  nil)
+		waitForExpectations(timeout: 600, handler:  nil)
 	}
 	
 }

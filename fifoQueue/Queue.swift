@@ -18,28 +18,52 @@ private class QueueItem<T>
 	{
 		self.value = newvalue
 	}
+	
+	
+	//	TODO: deinit?
+//	deinit
+//	{
+//		//print("QueueItem deinit...")
+//		while isUniquelyReferencedNonObjC(&next)
+//		{
+//			if let temp = next
+//			{
+//				next = temp.next
+//				temp.next = nil
+//			}
+//		}
+//	}
 }
 
 ///	A simple first-in-first-out queue
 ///	Supports simultaneous adding and removing.
-public class Queue<T>
+open class Queue<T>
 {
 	typealias Element = T
 	
-	private var frontItem:	QueueItem<Element>
-	private var backItem:	QueueItem<Element>
-	private var lock:		AnyObject
+	fileprivate var frontItem:	QueueItem<Element>
+	fileprivate var backItem:	QueueItem<Element>
+	fileprivate var lock:		AnyObject
 	
 	public init()
 	{
 		// Insert dummy item. Will disappear when the first item is added.
 		backItem	= QueueItem(nil)
 		frontItem	= backItem			//	Note that frontItem is always a reference
-		lock		= Int(0)
+		lock		= Int(0) as AnyObject
 	}
 	
+//	deinit
+//	{
+//		//print("Queue deinit...")
+//		while !isEmpty()
+//		{
+//			dequeue()
+//		}
+//	}
+	
 	/// Add a new item to the back of the queue.
-	public func enqueue(value: T)
+	open func enqueue(_ value: T)
 	{
 		if OBJC_SYNC_SUCCESS == Int(objc_sync_enter(lock))
 		{
@@ -51,7 +75,7 @@ public class Queue<T>
 	}
 	
 	/// Return and remove the item at the front of the queue.
-	public func dequeue() -> T?
+	open func dequeue() -> T?
 	{
 		var item: T?
 		
@@ -69,7 +93,7 @@ public class Queue<T>
 		return item
 	}
 	
-	public func isEmpty() -> Bool
+	open func isEmpty() -> Bool
 	{
 		var empty = false
 		
